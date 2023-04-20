@@ -1,55 +1,38 @@
-import mqtt from 'mqtt'
+import mqtt from 'mqtt';
+export class MqttClient {
+    #options;
+    #client;
+    #topics;
 
-class MqttClient {
-  #options;
-  #client;
-  #topics;
+    constructor(options, topics) {
+        this.#options = options;
+        this.#topics = topics;
+    }
 
-  constructor(options, topics){
-    this.#options = options;
-    this.#topics = topics;
-  }
+    connect() {
+        this.#client = mqtt.connect(this.#options);
+        this.#client.on('connect', () => {
+           console.log('## Connected!');
 
-  connect(){
-    const self = this;
-    self.#client = mqtt.connect(self.#options);
-    
-    // 연결 이벤트 콜백
-    self.#client.on('connect', () => {
-      console.log('## connected');
-      
-      // 구독 설정
-      self.#client.subscribe(self.#topics, (error) => {
-        if (!error) {
-          console.log(`## start to suscribe ${self.#topics}`);  
-        } else {
-          console.log(error)
-        }
-      });
-    });
+           this.#client.subscribe(this.#topics, (err) => {
+               if (!err) {
+                   console.log(`Start to subscribe: ${this.#topics}`);
+               } else {
+                   conosle.error(err);
+               }
+           });
+        });
 
-    self.#client.on('error', (error) => {
-      console.log(error);
-    });
-  }
+        this.#client.on('error', (err) => {
+            console.log(err);
+        });
+    }
 
-  // MQTT 메시지 발행
-  sendCommand(topic, message){
-    this.#client.publish(topic, JSON.stringify(message));
-  }
+    sendCommand(topic, message) {
+        this.#client.publish(topic, JSON.stringify(message));
+    }
 
-  // 메시지 이벤트 콜백 설정
-  setMessageCallback(cb){
-    this.#client.on('message', cb);
-  }
+    setMessageCallback(cb) {
+        this.#client.on('message', cb);
+    }
 }
-
-export default MqttClient;
-
-
-
-
-
-
-
-
